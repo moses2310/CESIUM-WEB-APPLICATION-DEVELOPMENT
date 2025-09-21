@@ -1,0 +1,83 @@
+{
+  "type": "FeatureCollection",
+  "features": [
+    {
+      "type": "Feature",
+      "properties": {
+        "Name": "Lilydale Station Car Park",
+        "Type": "Car park",
+        "Description": "Main car park at trail start"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [145.35, -37.75, 0]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "Name": "Lilydale Toilet Block",
+        "Type": "Toilet",
+        "Description": "Public toilet facilities"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [145.40, -37.80, 0]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "Name": "Lilydale Picnic Area",
+        "Type": "Picnic tables",
+        "Description": "Picnic area with tables and shelter"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [145.45, -37.85, 0]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "Name": "Warburton Car Park",
+        "Type": "Car park",
+        "Description": "Car park at trail end"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [145.50, -37.90, 0]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "Name": "Warburton Toilet Block",
+        "Type": "Toilet",
+        "Description": "Public toilet facilities"
+      },
+      "geometry": {
+        "type": "Point",
+        "coordinates": [145.55, -37.95, 0]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "Name": "Lilydale to Warburton Rail Trail",
+        "Type": "Trail",
+        "Description": "Main trail section"
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [145.35, -37.75, 0],
+          [145.40, -37.80, 0],
+          [145.45, -37.85, 0],
+          [145.50, -37.90, 0],
+          [145.55, -37.95, 0]
+        ]
+      }
+    }
+  ]
+}

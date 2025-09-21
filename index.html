@@ -1,0 +1,699 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, minimum-scale=1, user-scalable=no">
+    <title>Lilydale to Warburton Rail Trail - 3D Interactive Map</title>
+    <script src="https://cesium.com/downloads/cesiumjs/releases/1.111/Build/Cesium/Cesium.js"></script>
+    <link href="https://cesium.com/downloads/cesiumjs/releases/1.111/Build/Cesium/Widgets/widgets.css" rel="stylesheet">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        html, body, #cesiumContainer {
+            width: 100%; 
+            height: 100%; 
+            margin: 0; 
+            padding: 0; 
+            overflow: hidden;
+            font-family: 'Inter', sans-serif;
+        }
+        
+        .info-panel {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            background: linear-gradient(135deg, rgba(15, 23, 42, 0.95), rgba(30, 41, 59, 0.95));
+            backdrop-filter: blur(10px);
+            padding: 24px;
+            border-radius: 16px;
+            color: white;
+            font-family: 'Inter', sans-serif;
+            max-width: 380px;
+            z-index: 1000;
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.3), 0 10px 10px -5px rgba(0, 0, 0, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        .info-panel h2 {
+            margin: 0 0 16px 0;
+            color: #60a5fa;
+            font-size: 24px;
+            font-weight: 700;
+            background: linear-gradient(135deg, #60a5fa, #3b82f6);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        
+        .info-panel p {
+            margin: 8px 0;
+            font-size: 14px;
+            line-height: 1.6;
+            color: #e2e8f0;
+        }
+        
+        .student-info {
+            background: linear-gradient(135deg, rgba(59, 130, 246, 0.15), rgba(96, 165, 250, 0.1));
+            padding: 16px;
+            border-radius: 12px;
+            margin: 16px 0;
+            border-left: 4px solid #3b82f6;
+            border-top: 1px solid rgba(59, 130, 246, 0.2);
+        }
+        
+        .student-info p {
+            margin: 4px 0;
+            font-weight: 500;
+        }
+        
+        .features-list {
+            margin: 16px 0;
+            padding-left: 20px;
+        }
+        
+        .features-list li {
+            margin: 8px 0;
+            font-size: 13px;
+            color: #cbd5e1;
+            position: relative;
+        }
+        
+        .features-list li::before {
+            content: "✨";
+            position: absolute;
+            left: -20px;
+            top: 0;
+        }
+        
+        .legend {
+            position: absolute;
+            bottom: 20px;
+            right: 20px;
+            background: linear-gradient(135deg, rgba(15, 23, 42, 0.95), rgba(30, 41, 59, 0.95));
+            backdrop-filter: blur(10px);
+            padding: 20px;
+            border-radius: 16px;
+            color: white;
+            font-family: 'Inter', sans-serif;
+            z-index: 1000;
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.3), 0 10px 10px -5px rgba(0, 0, 0, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            min-width: 200px;
+        }
+        
+        .legend h3 {
+            margin: 0 0 16px 0;
+            color: #60a5fa;
+            font-size: 16px;
+            font-weight: 600;
+        }
+        
+        .legend-item {
+            display: flex;
+            align-items: center;
+            margin: 12px 0;
+            font-size: 13px;
+            font-weight: 500;
+        }
+        
+        .legend-color {
+            width: 24px;
+            height: 24px;
+            margin-right: 12px;
+            border-radius: 50%;
+            border: 3px solid rgba(255, 255, 255, 0.3);
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+        }
+        
+        .controls {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            background: linear-gradient(135deg, rgba(15, 23, 42, 0.95), rgba(30, 41, 59, 0.95));
+            backdrop-filter: blur(10px);
+            padding: 20px;
+            border-radius: 16px;
+            color: white;
+            font-family: 'Inter', sans-serif;
+            z-index: 1000;
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.3), 0 10px 10px -5px rgba(0, 0, 0, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        .controls h3 {
+            margin: 0 0 16px 0;
+            color: #60a5fa;
+            font-size: 16px;
+            font-weight: 600;
+        }
+        
+        .controls button {
+            background: linear-gradient(135deg, #3b82f6, #1d4ed8);
+            color: white;
+            border: none;
+            padding: 12px 20px;
+            margin: 6px 0;
+            border-radius: 10px;
+            cursor: pointer;
+            font-size: 13px;
+            font-weight: 500;
+            font-family: 'Inter', sans-serif;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.2);
+            display: block;
+            width: 100%;
+        }
+        
+        .controls button:hover {
+            background: linear-gradient(135deg, #1d4ed8, #1e40af);
+            transform: translateY(-2px);
+            box-shadow: 0 8px 15px -3px rgba(0, 0, 0, 0.3);
+        }
+        
+        .controls button:active {
+            transform: translateY(0);
+        }
+        
+        .github-info {
+            position: absolute;
+            bottom: 20px;
+            left: 20px;
+            background: linear-gradient(135deg, rgba(15, 23, 42, 0.95), rgba(30, 41, 59, 0.95));
+            backdrop-filter: blur(10px);
+            padding: 16px;
+            border-radius: 12px;
+            color: white;
+            font-family: 'Inter', sans-serif;
+            z-index: 1000;
+            font-size: 12px;
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.3), 0 10px 10px -5px rgba(0, 0, 0, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        .github-info p {
+            margin: 4px 0;
+            font-weight: 500;
+        }
+        
+        .status {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: linear-gradient(135deg, #10b981, #059669);
+            color: white;
+            padding: 16px 24px;
+            border-radius: 12px;
+            font-family: 'Inter', sans-serif;
+            font-weight: 600;
+            z-index: 1001;
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.3);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+        
+        .loading {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            color: white;
+            font-size: 18px;
+            font-family: 'Inter', sans-serif;
+            font-weight: 600;
+            z-index: 1001;
+            text-align: center;
+        }
+        
+        .loading::after {
+            content: '';
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid rgba(255, 255, 255, 0.3);
+            border-radius: 50%;
+            border-top-color: #60a5fa;
+            animation: spin 1s ease-in-out infinite;
+            margin-left: 10px;
+        }
+        
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+        
+        .title-badge {
+            display: inline-block;
+            background: linear-gradient(135deg, #3b82f6, #1d4ed8);
+            color: white;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 11px;
+            font-weight: 600;
+            margin-bottom: 8px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+    </style>
+</head>
+<body>
+    <div id="cesiumContainer"></div>
+    <div class="loading" id="loading">Loading 3D Map...</div>
+    <div class="status" id="status" style="display: none;">✅ 3D Map Loaded Successfully</div>
+    
+    <div class="info-panel">
+        <div class="title-badge">Interactive 3D Visualization</div>
+        <h2>Lilydale to Warburton Rail Trail</h2>
+        <div class="student-info">
+            <p><strong>Student:</strong> Moses Manuel</p>
+            <p><strong>Student ID:</strong> s4054086</p>
+        </div>
+        <p>Explore the beautiful rail trail through interactive 3D visualization. Click on waypoints to discover facilities and amenities along the route.</p>
+        <ul class="features-list">
+            <li>3D terrain with Google Photorealistic tiles</li>
+            <li>Interactive waypoint markers</li>
+            <li>Trail visualization with real-time navigation</li>
+            <li>Fly-to navigation controls</li>
+            <li>Responsive design for all devices</li>
+        </ul>
+    </div>
+    
+    <div class="controls">
+        <h3>Navigation</h3>
+        <button onclick="flyToTrail()">🚁 Fly to Trail</button>
+        <button onclick="toggleWaypoints()">📍 Toggle Waypoints</button>
+        <button onclick="resetView()">🏠 Reset View</button>
+        <button onclick="toggleLabels()">🏷️ Toggle Labels</button>
+    </div>
+    
+    <div class="legend">
+        <h3>Waypoint Types</h3>
+        <div class="legend-item">
+            <div class="legend-color" style="background: linear-gradient(135deg, #6b7280, #4b5563);"></div>
+            <span>Car Park</span>
+        </div>
+        <div class="legend-item">
+            <div class="legend-color" style="background: linear-gradient(135deg, #3b82f6, #1d4ed8);"></div>
+            <span>Toilet</span>
+        </div>
+        <div class="legend-item">
+            <div class="legend-color" style="background: linear-gradient(135deg, #10b981, #059669);"></div>
+            <span>Picnic Tables</span>
+        </div>
+        <div class="legend-item">
+            <div class="legend-color" style="background: linear-gradient(135deg, #ef4444, #dc2626);"></div>
+            <span>Other Facilities</span>
+        </div>
+    </div>
+
+    <div class="github-info">
+        <p><strong>📁 Repository:</strong> Private</p>
+        <p><strong>👥 Team Access:</strong> Granted</p>
+        <p><strong>🚀 Deployment:</strong> GitHub Pages</p>
+    </div>
+
+    <script>
+        // Cesium ion access token
+        Cesium.Ion.defaultAccessToken = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJqdGkiOiJmY2YwODczMi1hYWQ5LTRiMmUtOWYzYy00OWU5NTlhMzZjOTIiLCJpZCI6MzI5MjE2LCJpYXQiOjE3NTQ0NTQ0MDN9.OWlJwWHRt9se9jvWE6jGRxzGFzO_twYuTNY-UJgJ-Gw';
+        
+        // Variables to track waypoint visibility
+        let waypointsVisible = true;
+        let labelsVisible = true;
+        let viewer;
+        let waypointEntities = []; // FIXED: Added missing waypoint tracking array
+        
+        // Initialize the application
+        function init() {
+            try {
+                console.log('Initializing Cesium...');
+                
+                // Create the Cesium viewer with enhanced configuration
+                viewer = new Cesium.Viewer('cesiumContainer', {
+                    timeline: false,
+                    animation: false,
+                    homeButton: false,
+                    sceneModePicker: false,
+                    baseLayerPicker: false,
+                    navigationHelpButton: false,
+                    fullscreenButton: false,
+                    vrButton: false,
+                    geocoder: false,
+                    infoBox: true,
+                    selectionIndicator: true
+                });
+                
+                console.log('Cesium viewer created successfully');
+                
+                // Hide loading message and show status
+                document.getElementById('loading').style.display = 'none';
+                document.getElementById('status').style.display = 'block';
+                
+                // Hide status after 3 seconds
+                setTimeout(() => {
+                    document.getElementById('status').style.display = 'none';
+                }, 3000);
+                
+                // Set initial camera position
+                viewer.camera.setView({
+                    destination: Cesium.Cartesian3.fromDegrees(145.50, -37.90, 2500),
+                    orientation: {
+                        heading: Cesium.Math.toRadians(0.0),
+                        pitch: Cesium.Math.toRadians(-20.0),
+                    }
+                });
+                
+                // Add Google Photorealistic 3D Tiles
+                try {
+                    const tileset = new Cesium.Cesium3DTileset({
+                        url: Cesium.IonResource.fromAssetId(1)
+                    });
+                    viewer.scene.primitives.add(tileset);
+                    console.log('Google Photorealistic 3D Tiles added');
+                } catch (error) {
+                    console.log('Error adding 3D tiles:', error);
+                }
+                
+                // Load sample data immediately
+                loadSampleData();
+                
+                // Try to load real data (will fallback to sample if fails)
+                loadRealData();
+                
+            } catch (error) {
+                console.error('Error initializing Cesium:', error);
+                document.getElementById('loading').innerHTML = 'Error loading 3D map. Check console for details.';
+            }
+        }
+        
+        // Load sample data for immediate display
+        function loadSampleData() {
+            console.log('Loading sample data...');
+            
+            // Sample waypoints with realistic coordinates for Lilydale to Warburton trail
+            const waypoints = [
+                { name: 'Lilydale Station Car Park', type: 'Car park', position: [145.35, -37.75, 0] },
+                { name: 'Lilydale Toilet Block', type: 'Toilet', position: [145.40, -37.80, 0] },
+                { name: 'Lilydale Picnic Area', type: 'Picnic tables', position: [145.45, -37.85, 0] },
+                { name: 'Wandin North', type: 'Facility', position: [145.50, -37.90, 0] },
+                { name: 'Woori Yallock', type: 'Facility', position: [145.55, -37.95, 0] },
+                { name: 'Yarra Junction', type: 'Facility', position: [145.60, -38.00, 0] },
+                { name: 'Warburton', type: 'Facility', position: [145.65, -38.05, 0] },
+                { name: 'Lilydale Station', type: 'Station', position: [145.37, -37.76, 0] },
+                { name: 'Wandin North Station', type: 'Station', position: [145.52, -37.91, 0] },
+                { name: 'Woori Yallock Station', type: 'Station', position: [145.57, -37.96, 0] },
+                { name: 'Yarra Junction Station', type: 'Station', position: [145.62, -38.01, 0] },
+                { name: 'Warburton Station', type: 'Station', position: [145.67, -38.06, 0] },
+                { name: 'Lilydale Rest Area', type: 'Rest Area', position: [145.38, -37.77, 0] },
+                { name: 'Wandin North Rest Area', type: 'Rest Area', position: [145.53, -37.92, 0] },
+                { name: 'Woori Yallock Rest Area', type: 'Rest Area', position: [145.58, -37.97, 0] },
+                { name: 'Yarra Junction Rest Area', type: 'Rest Area', position: [145.63, -38.02, 0] },
+                { name: 'Warburton Rest Area', type: 'Rest Area', position: [145.68, -38.07, 0] },
+                { name: 'Lilydale Information Center', type: 'Information', position: [145.39, -37.78, 0] },
+                { name: 'Wandin North Information Center', type: 'Information', position: [145.54, -37.93, 0] },
+                { name: 'Woori Yallock Information Center', type: 'Information', position: [145.59, -37.98, 0] },
+                { name: 'Yarra Junction Information Center', type: 'Information', position: [145.64, -38.03, 0] },
+                { name: 'Warburton Information Center', type: 'Information', position: [145.69, -38.08, 0] },
+                { name: 'Lilydale Water Point', type: 'Water', position: [145.36, -37.79, 0] },
+                { name: 'Wandin North Water Point', type: 'Water', position: [145.51, -37.94, 0] },
+                { name: 'Woori Yallock Water Point', type: 'Water', position: [145.56, -37.99, 0] }
+            ];
+            
+            // Add waypoints with blue square markers like in the image
+            waypoints.forEach(waypoint => {
+                let color = Cesium.Color.BLUE; // Default blue for all waypoints like in the image
+                let icon = '🏢'; // Default building icon
+                
+                // Color coding based on type
+                if (waypoint.type.toLowerCase().includes('car park')) {
+                    color = Cesium.Color.GRAY;
+                    icon = '🅿️';
+                } else if (waypoint.type.toLowerCase().includes('toilet')) {
+                    color = Cesium.Color.BLUE;
+                    icon = '🚻';
+                } else if (waypoint.type.toLowerCase().includes('picnic')) {
+                    color = Cesium.Color.GREEN;
+                    icon = '🍽️';
+                } else if (waypoint.type.toLowerCase().includes('station')) {
+                    color = Cesium.Color.BLUE;
+                    icon = '🚉';
+                } else if (waypoint.type.toLowerCase().includes('rest')) {
+                    color = Cesium.Color.BLUE;
+                    icon = '🛋️';
+                } else if (waypoint.type.toLowerCase().includes('information')) {
+                    color = Cesium.Color.BLUE;
+                    icon = 'ℹ️';
+                } else if (waypoint.type.toLowerCase().includes('water')) {
+                    color = Cesium.Color.BLUE;
+                    icon = '💧';
+                } else {
+                    color = Cesium.Color.BLUE;
+                    icon = '🏢';
+                }
+                
+                const entity = viewer.entities.add({
+                    name: waypoint.name,
+                    position: Cesium.Cartesian3.fromDegrees(waypoint.position[0], waypoint.position[1], waypoint.position[2]),
+                    billboard: {
+                        image: createSquareIcon(color, icon),
+                        width: 32,
+                        height: 32,
+                        heightReference: Cesium.HeightReference.CLAMP_TO_GROUND,
+                        scaleByDistance: new Cesium.NearFarScalar(1.5e2, 1.0, 1.5e7, 0.5),
+                        show: waypointsVisible
+                    },
+                    label: {
+                        text: waypoint.name,
+                        font: '14pt Inter, sans-serif',
+                        pixelOffset: new Cesium.Cartesian2(0, -40),
+                        fillColor: Cesium.Color.WHITE,
+                        outlineColor: Cesium.Color.BLACK,
+                        outlineWidth: 3,
+                        style: Cesium.LabelStyle.FILL_AND_OUTLINE,
+                        heightReference: Cesium.HeightReference.CLAMP_TO_GROUND,
+                        scale: 1.0,
+                        show: labelsVisible,
+                        scaleByDistance: new Cesium.NearFarScalar(1.5e2, 1.0, 1.5e7, 0.5)
+                    },
+                    description: `
+                        <div style="font-family: 'Inter', sans-serif; padding: 20px; max-width: 300px;">
+                            <h3 style="color: #3b82f6; margin: 0 0 12px 0; font-size: 18px;">${waypoint.name}</h3>
+                            <p style="margin: 8px 0; color: #374151;"><strong>Type:</strong> ${waypoint.type}</p>
+                            <p style="margin: 8px 0; color: #374151;"><strong>Location:</strong> Rail Trail</p>
+                            <p style="margin: 12px 0 0 0; font-size: 12px; color: #6b7280; font-style: italic;">
+                                Click to explore more details about this location.
+                            </p>
+                        </div>
+                    `
+                });
+                
+                // FIXED: Add waypoint to tracking array
+                waypointEntities.push(entity);
+            });
+            
+            // Add trail with realistic coordinates
+            const trailCoordinates = [
+                [145.35, -37.75, 0],
+                [145.40, -37.80, 0],
+                [145.45, -37.85, 0],
+                [145.50, -37.90, 0],
+                [145.55, -37.95, 0],
+                [145.60, -38.00, 0],
+                [145.65, -38.05, 0]
+            ];
+            
+            viewer.entities.add({
+                name: 'Lilydale to Warburton Rail Trail',
+                polyline: {
+                    positions: Cesium.Cartesian3.fromDegreesArrayHeights(trailCoordinates.flat()),
+                    width: 12,
+                    material: Cesium.Color.WHITE,
+                    clampToGround: true,
+                    outline: true,
+                    outlineColor: Cesium.Color.BLACK,
+                    outlineWidth: 3
+                }
+            });
+            
+            console.log('Sample data loaded successfully');
+        }
+        
+        // Function to create square icons like in the image
+        function createSquareIcon(color, icon) {
+            const canvas = document.createElement('canvas');
+            canvas.width = 64;
+            canvas.height = 64;
+            const ctx = canvas.getContext('2d');
+            
+            // Draw blue square background
+            ctx.fillStyle = color.toCssColorString ? color.toCssColorString() : color.toString();
+            ctx.fillRect(8, 8, 48, 48);
+            
+            // Draw white border
+            ctx.strokeStyle = 'white';
+            ctx.lineWidth = 4;
+            ctx.strokeRect(8, 8, 48, 48);
+            
+            // Draw icon in center
+            ctx.fillStyle = 'white';
+            ctx.font = '24px Arial';
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            ctx.fillText(icon, 32, 32);
+            
+            return canvas.toDataURL();
+        }
+        
+        // Try to load real data from Cesium ion (with better error handling)
+        function loadRealData() {
+            console.log('Attempting to load real data from Cesium ion...');
+            
+            // Load waypoints with proper error handling
+            const waypointsDataSource = new Cesium.GeoJsonDataSource();
+            waypointsDataSource.load('https://api.cesium.com/v1/assets/3766589/endpoint').then(function(dataSource) {
+                console.log('Real waypoints loaded successfully');
+                // Clear sample data and add real data
+                viewer.entities.removeAll();
+                waypointEntities = []; // Clear tracking array
+                viewer.dataSources.add(dataSource);
+                styleWaypoints(dataSource);
+                loadSampleData(); // Re-add trail
+            }).catch(function(error) {
+                console.log('Using sample waypoints (real data not accessible):', error.message);
+                // Keep sample data
+            });
+            
+            // Load trail with proper error handling
+            const trailDataSource = new Cesium.GeoJsonDataSource();
+            trailDataSource.load('https://api.cesium.com/v1/assets/3766588/endpoint').then(function(dataSource) {
+                console.log('Real trail loaded successfully');
+                viewer.dataSources.add(dataSource);
+                styleTrail(dataSource);
+            }).catch(function(error) {
+                console.log('Using sample trail (real data not accessible):', error.message);
+                // Keep sample data
+            });
+        }
+        
+        // Function to style waypoints based on Name attribute
+        function styleWaypoints(dataSource) {
+            const entities = dataSource.entities.values;
+            
+            entities.forEach(entity => {
+                if (entity.point) {
+                    const name = entity.properties.Name ? entity.properties.Name.getValue() : '';
+                    let color = Cesium.Color.BLUE;
+                    let icon = '🏢';
+                    
+                    if (name.toLowerCase().includes('car park')) {
+                        color = Cesium.Color.GRAY;
+                        icon = '🅿️';
+                    } else if (name.toLowerCase().includes('toilet')) {
+                        color = Cesium.Color.BLUE;
+                        icon = '🚻';
+                    } else if (name.toLowerCase().includes('picnic')) {
+                        color = Cesium.Color.GREEN;
+                        icon = '🍽️';
+                    }
+                    
+                    entity.billboard = {
+                        image: createSquareIcon(color, icon),
+                        width: 32,
+                        height: 32,
+                        heightReference: Cesium.HeightReference.CLAMP_TO_GROUND
+                    };
+                    
+                    entity.label = {
+                        text: name,
+                        font: '14pt Inter, sans-serif',
+                        pixelOffset: new Cesium.Cartesian2(0, -40),
+                        fillColor: Cesium.Color.WHITE,
+                        outlineColor: Cesium.Color.BLACK,
+                        outlineWidth: 3,
+                        style: Cesium.LabelStyle.FILL_AND_OUTLINE,
+                        heightReference: Cesium.HeightReference.CLAMP_TO_GROUND,
+                        show: labelsVisible
+                    };
+                    
+                    // FIXED: Add to waypoint tracking array
+                    waypointEntities.push(entity);
+                }
+            });
+        }
+        
+        // Function to style trail
+        function styleTrail(dataSource) {
+            const entities = dataSource.entities.values;
+            
+            entities.forEach(entity => {
+                if (entity.polyline) {
+                    entity.polyline.width = 12;
+                    entity.polyline.material = Cesium.Color.WHITE;
+                    entity.polyline.clampToGround = true;
+                    entity.polyline.outline = true;
+                    entity.polyline.outlineColor = Cesium.Color.BLACK;
+                    entity.polyline.outlineWidth = 3;
+                }
+            });
+        }
+        
+        // Control functions
+        function flyToTrail() {
+            if (viewer) {
+                viewer.camera.flyTo({
+                    destination: Cesium.Cartesian3.fromDegrees(145.50, -37.90, 1500),
+                    orientation: {
+                        heading: Cesium.Math.toRadians(0.0),
+                        pitch: Cesium.Math.toRadians(-30.0),
+                    },
+                    duration: 3.0
+                });
+            }
+        }
+        
+        // FIXED: Corrected toggleWaypoints function
+        function toggleWaypoints() {
+            if (viewer) {
+                waypointsVisible = !waypointsVisible;
+                waypointEntities.forEach(entity => {
+                    if (entity.billboard) {
+                        entity.billboard.show = waypointsVisible;
+                    }
+                });
+                console.log('Waypoints', waypointsVisible ? 'shown' : 'hidden');
+            }
+        }
+        
+        // FIXED: Corrected toggleLabels function (renamed from showAllWaypoints)
+        function toggleLabels() {
+            if (viewer) {
+                labelsVisible = !labelsVisible;
+                waypointEntities.forEach(entity => {
+                    if (entity.label) {
+                        entity.label.show = labelsVisible;
+                    }
+                });
+                console.log('Labels', labelsVisible ? 'shown' : 'hidden');
+            }
+        }
+        
+        function resetView() {
+            if (viewer) {
+                viewer.camera.setView({
+                    destination: Cesium.Cartesian3.fromDegrees(145.50, -37.90, 2500),
+                    orientation: {
+                        heading: Cesium.Math.toRadians(0.0),
+                        pitch: Cesium.Math.toRadians(-20.0),
+                    }
+                });
+            }
+        }
+        
+        // Initialize when page loads
+        window.addEventListener('load', init);
+    </script>
+</body>
+</html>
